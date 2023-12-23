@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 
 	todo "example.com/m/v2"
@@ -10,16 +9,18 @@ import (
 	"example.com/m/v2/pkg/service"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/sirupen/logrus"
 	"github.com/spf13/viper"
 )
 
 func main() {
+	logrus.SetFormatter(new(logrus.JSONFormatter))
 	if err := initConfig(); err != nil {
-		log.Fatalf(err.Error())
+		logrus.Fatalf(err.Error())
 	}
 
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf(err.Error())
+		logrus.Fatalf(err.Error())
 	}
 
 	db, err := repository.NewPostgresDb(repository.Config{
@@ -31,7 +32,7 @@ func main() {
 		SSLMode:  viper.GetString("db.sslmode"),
 	})
 	if err != nil {
-		log.Fatalf("failed to initialize db: %s", err.Error())
+		logrus.Fatalf("failed to initialize db: %s", err.Error())
 	}
 
 	repos := repository.NewRepository(db)
@@ -40,7 +41,7 @@ func main() {
 
 	srv := new(todo.Server)
 	if err := srv.Run(viper.GetString("port"), handlers.InitRoutes()); err != nil {
-		log.Fatalf("error occured %s", err.Error())
+		logrus.Fatalf("error occured %s", err.Error())
 	}
 }
 
